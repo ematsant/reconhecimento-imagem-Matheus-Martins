@@ -1,239 +1,59 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site Matheus - Classificação Visual</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
-    <style>
-        body { 
-            background-color: #f4f7f6; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        }
-        .navbar-brand { 
-            font-weight: 700; 
-            letter-spacing: 1px; 
-        }
-        .card { 
-            border: none; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-            margin-bottom: 24px; 
-        }
-        .webcam-wrapper { 
-            width: 100%; 
-            min-height: 350px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background-color: #e9ecef; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            position: relative; 
-        }
-        .webcam-wrapper canvas { 
-            width: 100% !important; 
-            height: auto !important; 
-            border-radius: 12px; 
-            object-fit: cover;
-        }
-        .progress { 
-            height: 25px; 
-            border-radius: 8px; 
-            background-color: #e9ecef; 
-        }
-        .progress-bar { 
-            font-weight: bold; 
-            font-size: 0.95rem; 
-            line-height: 25px; 
-            transition: width 0.3s ease;
-        }
-        .status-badge { 
-            position: absolute; 
-            top: 15px; 
-            left: 15px; 
-            z-index: 10; 
-            font-size: 0.9rem;
-            padding: 8px 12px;
-        }
-    </style>
-</head>
-<body>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm mb-5">
-    <div class="container">
-        <a class="navbar-brand" href="#">
-            <i class="bi bi-cpu-fill text-primary me-2"></i>Site Matheus
-        </a>
-        <span class="navbar-text text-light d-none d-md-block">
-            Monitoramento de Imagens em Tempo Real
-        </span>
-    </div>
-</nav>
-
-<div class="container">
-    <div class="row">
-        <div class="col-lg-7">
-            <div class="card p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="m-0 fw-bold"><i class="bi bi-camera-video text-primary me-2"></i>Câmera</h4>
-                    <button id="start-btn" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" onclick="init()">
-                        <i class="bi bi-play-fill me-1"></i> Iniciar
-                    </button>
-                </div>
-                
-                <div class="webcam-wrapper shadow-sm" id="webcam-container">
-                    <span id="status-badge" class="badge bg-secondary status-badge shadow">Desligada</span>
-                    <div id="placeholder-text" class="text-muted text-center p-4">
-                        <i class="bi bi-webcam display-1 d-block mb-3 text-secondary"></i>
-                        <h5>Câmera Inativa</h5>
-                        <p class="small">Clique no botão "Iniciar" acima para ligar a câmera e carregar o modelo.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card p-4 bg-white border border-light">
-                <h5 class="fw-bold"><i class="bi bi-info-circle-fill text-info me-2"></i>Como Funciona?</h5>
-                <p class="text-muted mb-3 text-justify">
-                    Este sistema utiliza IA (Inteligência Artificial) treinada previamente através do Teachable Machine. Ele analisa os quadros de vídeo capturados pela sua câmera e tenta classificar o que está vendo com base nas categorias que você ensinou.
-                </p>
-                <div class="alert alert-secondary mb-0 py-2">
-                    <i class="bi bi-lightbulb-fill text-warning me-2"></i> 
-                    <strong>Dica:</strong> Garanta uma boa iluminação para que a API (Application Programming Interface) do modelo consiga extrair as características com maior precisão.
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-5">
-            <div class="card p-4 h-100 border-top border-4 border-primary">
-                <h4 class="mb-4 fw-bold"><i class="bi bi-bar-chart-steps text-primary me-2"></i>Análise de Correspondência</h4>
-                
-                <div id="label-container" class="d-none">
-                    </div>
-
-                <div id="empty-results" class="text-center text-muted my-auto py-5">
-                    <i class="bi bi-hourglass-split display-3 d-block mb-3 text-light"></i>
-                    <h5 class="text-secondary">Aguardando Dados</h5>
-                    <p class="small">Os níveis de correspondência aparecerão aqui assim que a câmera for ativada.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+<div>Teachable Machine Image Model</div>
+<button type="button" onclick="init()">Start</button>
+<div id="webcam-container"></div>
+<div id="label-container"></div>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-
 <script type="text/javascript">
+    // More API functions here:
+    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+
+    // the link to your model provided by Teachable Machine export panel
     const URL = "./my_model/";
+
     let model, webcam, labelContainer, maxPredictions;
 
+    // Load the image model and setup the webcam
     async function init() {
-        const startBtn = document.getElementById("start-btn");
-        const statusBadge = document.getElementById("status-badge");
-        const placeholder = document.getElementById("placeholder-text");
-        const emptyResults = document.getElementById("empty-results");
-        
-        // Atualiza a interface para estado de carregamento
-        startBtn.disabled = true;
-        startBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Carregando...';
-        statusBadge.className = "badge bg-warning text-dark status-badge shadow";
-        statusBadge.innerHTML = '<span class="spinner-grow spinner-grow-sm me-1"></span>Carregando Modelo';
-
         const modelURL = URL + "model.json";
         const metadataURL = URL + "metadata.json";
 
-        try {
-            // Carrega o modelo
-            model = await tmImage.load(modelURL, metadataURL);
-            maxPredictions = model.getTotalClasses();
+        // load the model and metadata
+        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+        // or files from your local hard drive
+        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
 
-            // Configura a câmera com uma resolução maior
-            const flip = true;
-            webcam = new tmImage.Webcam(600, 600, flip);
-            await webcam.setup();
-            await webcam.play();
-            window.requestAnimationFrame(loop);
+        // Convenience function to setup a webcam
+        const flip = true; // whether to flip the webcam
+        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+        await webcam.setup(); // request access to the webcam
+        await webcam.play();
+        window.requestAnimationFrame(loop);
 
-            // Ajustes de DOM (Document Object Model) após inicialização com sucesso
-            placeholder.style.display = "none";
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
-            
-            statusBadge.className = "badge bg-success status-badge shadow";
-            statusBadge.innerHTML = '<i class="bi bi-record-circle me-1"></i>Ao Vivo';
-            startBtn.style.display = "none"; // Esconde o botão
-
-            emptyResults.style.display = "none";
-            labelContainer = document.getElementById("label-container");
-            labelContainer.classList.remove("d-none");
-
-            // Cria os elementos visuais para cada classe
-            for (let i = 0; i < maxPredictions; i++) {
-                const wrapper = document.createElement("div");
-                wrapper.className = "mb-4";
-                wrapper.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-end mb-2">
-                        <span class="fw-bold text-dark class-name" style="text-transform: uppercase; letter-spacing: 0.5px;">Carregando...</span>
-                        <span class="fw-bold text-secondary class-prob fs-5">0%</span>
-                    </div>
-                    <div class="progress shadow-sm border border-light">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-secondary" 
-                             role="progressbar" style="width: 0%;">
-                        </div>
-                    </div>
-                `;
-                labelContainer.appendChild(wrapper);
-            }
-
-        } catch (error) {
-            console.error(error);
-            startBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Tentar Novamente';
-            startBtn.disabled = false;
-            statusBadge.className = "badge bg-danger status-badge shadow";
-            statusBadge.innerHTML = '<i class="bi bi-x-circle me-1"></i>Erro';
-            alert("Não foi possível carregar o modelo ou acessar a câmera. Verifique se a pasta './my_model/' existe e contém os arquivos corretos.");
+        // append elements to the DOM
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        labelContainer = document.getElementById("label-container");
+        for (let i = 0; i < maxPredictions; i++) { // and class labels
+            labelContainer.appendChild(document.createElement("div"));
         }
     }
 
     async function loop() {
-        webcam.update();
+        webcam.update(); // update the webcam frame
         await predict();
         window.requestAnimationFrame(loop);
     }
 
+    // run the webcam image through the image model
     async function predict() {
+        // predict can take in an image, video or canvas html element
         const prediction = await model.predict(webcam.canvas);
-        const progressNodes = labelContainer.children;
-
         for (let i = 0; i < maxPredictions; i++) {
-            const className = prediction[i].className;
-            const probValue = Math.round(prediction[i].probability * 100);
-            const node = progressNodes[i];
-            
-            // Atualiza os textos
-            node.querySelector('.class-name').innerText = className;
-            node.querySelector('.class-prob').innerText = probValue + "%";
-            
-            // Atualiza a barra
-            const progressBar = node.querySelector('.progress-bar');
-            progressBar.style.width = probValue + "%";
-
-            // Define as cores (Bootstrap classes) com base no nível de confiança
-            if (probValue >= 85) {
-                progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-success";
-                node.querySelector('.class-prob').className = "fw-bold text-success class-prob fs-5";
-            } else if (probValue >= 50) {
-                progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-warning text-dark";
-                node.querySelector('.class-prob').className = "fw-bold text-warning class-prob fs-5";
-            } else {
-                progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-secondary";
-                node.querySelector('.class-prob').className = "fw-bold text-secondary class-prob fs-5";
-            }
+            const classPrediction =
+                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            labelContainer.childNodes[i].innerHTML = classPrediction;
         }
     }
 </script>
-</body>
-</html>
