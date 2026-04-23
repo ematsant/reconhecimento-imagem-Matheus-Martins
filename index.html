@@ -1,59 +1,222 @@
-<div>Teachable Machine Image Model</div>
-<button type="button" onclick="init()">Start</button>
-<div id="webcam-container"></div>
-<div id="label-container"></div>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-<script type="text/javascript">
-    // More API functions here:
-    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
-
-    // the link to your model provided by Teachable Machine export panel
-    const URL = "./my_model/";
-
-    let model, webcam, labelContainer, maxPredictions;
-
-    // Load the image model and setup the webcam
-    async function init() {
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
-
-        // load the model and metadata
-        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
-        // or files from your local hard drive
-        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
-
-        // Convenience function to setup a webcam
-        const flip = true; // whether to flip the webcam
-        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
-        await webcam.setup(); // request access to the webcam
-        await webcam.play();
-        window.requestAnimationFrame(loop);
-
-        // append elements to the DOM
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
-        labelContainer = document.getElementById("label-container");
-        for (let i = 0; i < maxPredictions; i++) { // and class labels
-            labelContainer.appendChild(document.createElement("div"));
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reconhecimento de Imagem</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            color: #f6f8fb;
+            background: #0b1220;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.5;
         }
-    }
 
-    async function loop() {
-        webcam.update(); // update the webcam frame
-        await predict();
-        window.requestAnimationFrame(loop);
-    }
-
-    // run the webcam image through the image model
-    async function predict() {
-        // predict can take in an image, video or canvas html element
-        const prediction = await model.predict(webcam.canvas);
-        for (let i = 0; i < maxPredictions; i++) {
-            const classPrediction =
-                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-            labelContainer.childNodes[i].innerHTML = classPrediction;
+        * {
+            box-sizing: border-box;
         }
-    }
-</script>
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: radial-gradient(circle at top left, rgba(56, 135, 255, 0.18), transparent 28%),
+                        radial-gradient(circle at bottom right, rgba(74, 220, 255, 0.12), transparent 28%),
+                        linear-gradient(180deg, #0d172b 0%, #070b15 100%);
+        }
+
+        .page-shell {
+            width: min(100%, 840px);
+            padding: 2rem;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(9, 14, 24, 0.92);
+            box-shadow: 0 36px 120px rgba(0, 0, 0, 0.22);
+            backdrop-filter: blur(12px);
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .title {
+            font-size: clamp(1.9rem, 3vw, 2.6rem);
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: #a8b7d3;
+            max-width: 36rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1.75rem;
+        }
+
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 0.95rem 1.8rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #ffffff;
+            background: linear-gradient(135deg, #4f8cff, #68fff7);
+            box-shadow: 0 18px 40px rgba(40, 103, 255, 0.22);
+            transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover,
+        button:focus-visible {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+            outline: none;
+        }
+
+        .panel {
+            display: grid;
+            grid-template-columns: 1.2fr 0.9fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        #webcam-container {
+            min-height: 240px;
+            display: grid;
+            place-items: center;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(13, 20, 35, 0.7);
+            padding: 1rem;
+        }
+
+        #webcam-container canvas {
+            border-radius: 20px;
+            max-width: 100%;
+            height: auto;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 24px 48px rgba(0, 0, 0, 0.24);
+        }
+
+        .predictions {
+            display: grid;
+            gap: 0.75rem;
+            padding: 1.25rem;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            border-radius: 16px;
+            background: rgba(8, 14, 24, 0.9);
+            color: #d9e2ff;
+            font-size: 0.98rem;
+        }
+
+        .prediction-item span {
+            color: #8d9ee3;
+        }
+
+        @media (max-width: 720px) {
+            .panel {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <section class="header">
+            <h1 class="title">Reconhecimento de imagem ao vivo</h1>
+            <p class="subtitle">Use sua webcam para reconhecer padrões com o modelo treinado no Teachable Machine. Clique em "Start" para ativar a câmera e ver as predições em tempo real.</p>
+        </section>
+
+        <div class="controls">
+            <button type="button" onclick="init()">Start</button>
+        </div>
+
+        <section class="panel">
+            <div id="webcam-container"></div>
+            <div id="label-container" class="predictions"></div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script type="text/javascript">
+        // More API functions here:
+        // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+
+        // the link to your model provided by Teachable Machine export panel
+        const URL = "./my_model/";
+
+        let model, webcam, labelContainer, maxPredictions;
+
+        // Load the image model and setup the webcam
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            // load the model and metadata
+            // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+            // or files from your local hard drive
+            // Note: the pose library adds "tmImage" object to your window (window.tmImage)
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            // Convenience function to setup a webcam
+            const flip = true; // whether to flip the webcam
+            webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+            await webcam.setup(); // request access to the webcam
+            await webcam.play();
+            window.requestAnimationFrame(loop);
+
+            // append elements to the DOM
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < maxPredictions; i++) { // and class labels
+                labelContainer.appendChild(document.createElement("div"));
+            }
+        }
+
+        async function loop() {
+            webcam.update(); // update the webcam frame
+            await predict();
+            window.requestAnimationFrame(loop);
+        }
+
+        // run the webcam image through the image model
+        async function predict() {
+            // predict can take in an image, video or canvas html element
+            const prediction = await model.predict(webcam.canvas);
+            for (let i = 0; i < maxPredictions; i++) {
+                const classPrediction =
+                    prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                labelContainer.childNodes[i].innerHTML = classPrediction;
+                labelContainer.childNodes[i].className = "prediction-item";
+            }
+        }
+    </script>
+</body>
+</html>
