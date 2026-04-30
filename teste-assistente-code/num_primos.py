@@ -22,15 +22,16 @@ class PrimeChecker:
 
     @staticmethod
     def validate_input(number: int) -> None:
-        """
-        Valida a entrada do usuário.
-
+        """Valida a entrada do usuário.
+        
+        Verifica se o número é um inteiro não-negativo.
+        
         Args:
-            number (int): Número a ser validado
-
+            number (int): Número a ser validado.
+        
         Raises:
-            TypeError: Se o número não for inteiro
-            ValueError: Se o número for negativo
+            TypeError: Se o número não for inteiro.
+            ValueError: Se o número for negativo.
         """
         if not isinstance(number, int):
             raise TypeError("O número deve ser um inteiro")
@@ -39,30 +40,31 @@ class PrimeChecker:
 
     @staticmethod
     def is_even(number: int) -> bool:
-        """
-        Verifica se um número é par.
-
+        """Verifica se um número é par.
+        
         Args:
-            number (int): Número a ser verificado
-
+            number (int): Número a ser verificado.
+        
         Returns:
-            bool: True se o número for par
+            bool: True se o número for par, False caso contrário.
         """
         return number % 2 == 0
 
     @staticmethod
     def has_divisor_in_range(number: int, start: int, end: int, step: int = 1) -> bool:
-        """
-        Verifica se o número tem divisores no intervalo especificado.
-
+        """Verifica se o número tem divisores no intervalo especificado.
+        
+        Itera pelo intervalo com o passo fornecido e retorna True se encontrar
+        um divisor exato do número.
+        
         Args:
-            number (int): Número a ser verificado
-            start (int): Início do intervalo
-            end (int): Fim do intervalo (inclusivo)
-            step (int): Passo do intervalo
-
+            number (int): Número a ser verificado.
+            start (int): Início do intervalo.
+            end (int): Fim do intervalo (inclusivo).
+            step (int): Passo da iteração. Padrão é 1.
+        
         Returns:
-            bool: True se encontrar um divisor
+            bool: True se encontrar um divisor, False caso contrário.
         """
         for divisor in range(start, end + 1, step):
             if number % divisor == 0:
@@ -71,25 +73,26 @@ class PrimeChecker:
 
     @classmethod
     def is_prime(cls, number: int) -> bool:
-        """
-        Verifica se um número é primo usando algoritmo otimizado.
-
-        Complexidade: O(√n)
-        Otimizações:
-        - Eliminação de candidatos pares
-        - Verificação apenas até √n
-        - Tratamento especial para casos extremos
-
+        """Verifica se um número é primo usando algoritmo otimizado.
+        
+        Implementa um algoritmo eficiente com complexidade O(√n) que testa
+        apenas divisores ímpares até a raiz quadrada do número.
+        
+        Otimizações aplicadas:
+            - Eliminação de candidatos pares.
+            - Verificação apenas até √n.
+            - Tratamento especial para casos extremos (0, 1, 2).
+        
         Args:
-            number (int): Número a ser verificado
-
+            number (int): Número a ser verificado.
+        
         Returns:
-            bool: True se o número for primo, False caso contrário
-
+            bool: True se o número for primo, False caso contrário.
+        
         Raises:
-            TypeError: Se o número não for inteiro
-            ValueError: Se o número for negativo
-
+            TypeError: Se o número não for inteiro.
+            ValueError: Se o número for negativo.
+        
         Examples:
             >>> PrimeChecker.is_prime(2)
             True
@@ -131,8 +134,10 @@ class PrimeTester:
 
     @staticmethod
     def run_basic_tests() -> None:
-        """
-        Executa testes básicos de funcionalidade.
+        """Executa testes básicos de funcionalidade.
+        
+        Testa a função is_prime() com um conjunto predefinido de números
+        primos e compostos, exibindo os resultados formatados.
         """
         print("🧪 Executando testes básicos de números primos...")
         print()
@@ -157,8 +162,10 @@ class PrimeTester:
 
     @staticmethod
     def run_edge_case_tests() -> None:
-        """
-        Executa testes de casos extremos.
+        """Executa testes de casos extremos.
+        
+        Testa números negativos, zero, um, dois, números primos pequenos
+        e números grandes, validando o tratamento correto de cada caso.
         """
         print("🔍 Testando casos extremos...")
 
@@ -182,11 +189,13 @@ class PrimeTester:
 
     @staticmethod
     def run_performance_test(limit: int = 10000) -> None:
-        """
-        Executa teste de performance verificando primos até um limite.
-
+        """Executa teste de performance verificando primos até um limite.
+        
+        Calcula o tempo necessário para verificar todos os números até o
+        limite fornecido e exibe a contagem de primos encontrados.
+        
         Args:
-            limit (int): Limite superior para teste
+            limit (int): Limite superior para a verificação. Padrão é 10000.
         """
         print(f"⚡ Testando performance até {limit}...")
 
@@ -204,8 +213,10 @@ class PrimeTester:
 
     @staticmethod
     def run_error_handling_tests() -> None:
-        """
-        Testa o tratamento de erros.
+        """Testa o tratamento de erros.
+        
+        Valida que a função is_prime() rejeita corretamente entradas inválidas
+        como floats, strings, None e listas, levantando as exceções apropriadas.
         """
         print("🚨 Testando tratamento de erros...")
 
@@ -227,8 +238,11 @@ class PrimeTester:
 
 
 def main() -> None:
-    """
-    Função principal que executa todos os testes.
+    """Função principal que executa todos os testes.
+    
+    Executa de forma sequencial os testes básicos, de casos extremos,
+    de performance e de tratamento de erros, exibindo os resultados
+    e dicas de uso no console.
     """
     print("🔢 Verificador de Números Primos - Suite de Testes")
     print("=" * 50)
@@ -248,14 +262,20 @@ def main() -> None:
 
 # Função de compatibilidade para uso legado
 def eh_primo(n: int) -> bool:
-    """
-    Função legada para compatibilidade.
-
+    """Função legada para compatibilidade.
+    
+    Wrapper que fornece compatibilidade com código legado, delegando
+    a verificação ao método PrimeChecker.is_prime().
+    
     Args:
-        n (int): Número a ser verificado
-
+        n (int): Número a ser verificado.
+    
     Returns:
-        bool: True se for primo
+        bool: True se o número for primo, False caso contrário.
+    
+    Raises:
+        TypeError: Se o número não for inteiro.
+        ValueError: Se o número for negativo.
     """
     return PrimeChecker.is_prime(n)
 
